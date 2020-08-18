@@ -1,9 +1,9 @@
 /node_modules
 /build
-
+client/
 config.js
 
-client/
+dev.js
 
 
 .DS_Store

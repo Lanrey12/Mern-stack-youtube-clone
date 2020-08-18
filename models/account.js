@@ -44,6 +44,14 @@ const AccountSchema = new Schema({
     imageUrl: {
         type: String,
     },
+    cart:{
+        type: Array,
+        default: []
+    },
+    history: {
+        type: Array,
+        default: []
+    },
     acceptTerms: { type: Boolean },
     role: { 
         type: String, 
@@ -142,8 +150,8 @@ function sendPasswordResetEmail(account, origin) {
 
 //basic details
 function basicDetails(account) {
-    const { id, title, firstName, lastName, email, role, location, bio, website, imageUrl, dateCreated, dateUpdated } = account;
-    return { id, title, firstName, lastName, email, role, location, bio, website, imageUrl, dateCreated, dateUpdated };
+    const { id, title, firstName, lastName, email, role, location, bio, website, imageUrl, cart, history, dateCreated, dateUpdated } = account;
+    return { id, title, firstName, lastName, email, role, location, bio, website, imageUrl, cart, history, dateCreated, dateUpdated };
 }
 
 ///functions 
@@ -227,7 +235,7 @@ async function getAccounts(){
 
 ////////////
 async function getAccount(id){
-    if(!isValidId(id)) throw 'Account id is not valid'
+    if(!isValidId(id)) throw 'Account identity is not valid'
     const account = await accountSchema.findById(id)
     if(!account) throw 'Account does not exist'
     return account
@@ -269,7 +277,9 @@ async function update( id, params ){
     await account.save()
     return basicDetails(account)
 }
+////////////////
 
+///////////////
 async function _delete(id){
     const account = await getAccount(id)
     await account.remove()
@@ -289,5 +299,6 @@ module.exports =  {
     getAccountById,
     create,
     update,
+ 
     delete: _delete
 }

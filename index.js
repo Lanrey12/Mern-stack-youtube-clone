@@ -8,6 +8,7 @@ const config = require('../RoleBasedMern/env/key')
 const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
 
+// "mongodb://localhost:27017/mern"
 
 const mongoose = require("mongoose");
 const connect = mongoose.connect("mongodb://localhost:27017/mern",
@@ -30,7 +31,23 @@ app.use(cookieParser());
 
 
 app.use('/accounts', require('./routes/accountController'))
+app.use('/accounts', require('./routes/productController'))
 app.use(errorHandler)
+
+app.use('/uploads', express.static('uploads'));
+
+// Serve static assets if in production
+if (process.env.NODE_ENV === "production") {
+
+  // Set static folder   
+  // All the javascript and css files will be read and served from this folder
+  app.use(express.static("client/build"));
+
+  // index.html for all page routes    html or routing and naviagtion
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../client", "build", "index.html"));
+  });
+}
 
 // server port
 const port = process.env.PORT || 5000

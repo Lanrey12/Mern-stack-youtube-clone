@@ -1,3 +1,3 @@
 module.exports = {
-    mongoURI: 'PUT YOUR MONGODB CONNECTION URI'
+    mongoURI: 'your cluster connection link'
 }
