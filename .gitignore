@@ -3,7 +3,7 @@
 client/
 config.js
 
-dev.js
+env/dev.js
 
 
 .DS_Store
