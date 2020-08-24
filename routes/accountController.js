@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const   accountService  = require('../models/account')
-const  { Product } = require('../models/product')
-const { Payment } = require('../models/Payment')
 const authorize = require('../middleware/authorize')
 const Role = require('../models/role')
 const validate = require('../middleware/validate')
 const Joi = require('@hapi/joi')
-const async = require('async')
+
 
 router.post('/register', registerSchema, register)
 router.post('/verify-email', verifyEmailSchema, verifyEmail)
@@ -21,149 +19,7 @@ router.post('/',authorize(Role.Admin), createSchema, create)
 router.put('/:id',authorize(), updateSchema, update)
 router.delete('/:id',authorize(), _delete)
 
- router.get('/product/addToCart',  (req, res) => {
-     accountService.accountSchema.findOne({ id: req.body.id}, (err, userInfo) => {
-         //console.log(req.body.id, userInfo)
-          
-         let duplicate = false
-         userInfo.cart.forEach((item) => {
-            if (item.id == req.query.productId) {
-                duplicate = true;
-            }
-        })
-
-
-        if (duplicate) {
-            accountService.accountSchema.findOneAndUpdate(
-                { id: req.id, "cart.id": req.query.productId },
-                { $inc: { "cart.$.quantity": 1 } },
-                { new: true },
-                (err, userInfo) => {
-                    if (err) return res.json({ success: false, err });
-                    res.status(200).json(userInfo.cart)
-                }
-            )
-        } else {
-            accountService.accountSchema.findOneAndUpdate(
-                { id: req.id },
-                {
-                    $push: {
-                        cart: {
-                            id: req.query.productId,
-                            quantity: 1,
-                            date: Date.now()
-                        }
-                    }
-                },
-                { new: true },
-                (err, userInfo) => {
-                    if (err) return res.json({ success: false, err });
-                    res.status(200).json(userInfo.cart)
-                }
-            )
-        }
-
-
-     })
- })
-
- router.get('/user/removeFromCart', (req, res) => {
-    accountService.accountSchema.findOneAndUpdate(
-        { id: req.id },
-        { 
-            "$pull": 
-                    { "cart": {"id":req.query.id}} 
-        },
-        { new: true},
-        (err, userInfo) => {
-          let cart = userInfo.cart
-          let array = cart.map(item => {
-              return item.id
-          })
-          Product.find({ '_id': { $in: array}})
-          .populate('writer')
-          .exec((err, cartDetail) => {
-              return res.status(200).json({
-                  cartDetail,
-                  cart
-              })
-          })
-        }
-    )
- })
-
- router.post('/user/successBuy', (req, res) => {
-     let history = []
-     let transactionData = {}
-
-     req.body.cartDetail.forEach((item) =>{
-         history.push({
-            dateOfPurchase: Date.now(),
-            name: item.title,
-            id: item._id,
-            price: item.price,
-            quantity: item.quantity,
-            paymentId: req.body.paymentData.paymentID
-         })
-     })
-
-     transactionData.user = {
-        id: req.body.id,
-        firstName: req.body.firstName,
-       lastName: req.body.lastName,
-       email: req.body.email
-     }
-
-     transactionData.data = req.body.paymentData;
-     transactionData.product = history
-
-     accountService.accountSchema.findOneAndUpdate(
-         {id: req.id},
-         { $push: { history: history}, $set: {cart: []}},
-         { new: true},
-         (err, user) => {
-            if (err) return res.json({ success: false, err });
-
-            const payment = new Payment(transactionData)
-            payment.save((err, doc) =>{
-                if (err) return res.json({ success: false, err });
-
-                 let products = []
-                 doc.product.forEach(item => {
-                     products.push({id: item.id, quantity: item.quantity})
-                 })
-                async.eachSeries(products, (item, callback) => {
-                    Product.update(
-                        {_id: item.id},
-                        { 
-                            $inc: {"sold": item.quantity}
-                        },
-                        {new: false},
-                        callback
-                    )
-                }, (err) => {
-                    if (err) return res.json({ success: false, err });
-                    res.status(200).json({
-                        success: true,
-                        cart: user.cart,
-                        cartDetail: []
-                    })
-                })
-            })
-         }
-     )
- })
-
- router.get('/user/getHistory', (req, res) => {
-    accountService.accountSchema.findOne(
-        { id: req.body.id },
-        (err, doc) => {
-            let history = doc.history;
-            if (err) return res.status(400).send(err)
-            return res.status(200).json({ success: true, history })
-        }
-    )
-})
+ 
 module.exports = router;
 
 ///////////////////////////

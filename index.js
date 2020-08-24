@@ -31,7 +31,10 @@ app.use(cookieParser());
 
 
 app.use('/accounts', require('./routes/accountController'))
-app.use('/accounts', require('./routes/productController'))
+app.use('/youtube', require('./routes/youtubeController'))
+app.use('/subscribe', require('./routes/subscribeController'))
+app.use('/comment', require('./routes/commentController'))
+ app.use('/like', require('./routes/likeController'))
 app.use(errorHandler)
 
 app.use('/uploads', express.static('uploads'));

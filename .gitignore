@@ -2,6 +2,7 @@
 /build
 client/
 config.js
+uploads/
 
 env/dev.js
 
